@@ -2,7 +2,7 @@ package net.jmf.app;
 
 public interface Grammar {
 	public static final String NL = System.lineSeparator();
-	public static final String ARITHMETIC = "" +
+	public static final String ARITHMETIC =
 			"grammar arithmetic;" + NL +
 			"equation   : expression relop expression   ;" + NL +
 			"expression   : multiplyingExpression ((PLUS | MINUS) multiplyingExpression)*   ;" + NL +
@@ -27,5 +27,5 @@ public interface Grammar {
 			"POW   : '^'   ;" + NL +
 			"LETTER   : ('a' .. 'z') | ('A' .. 'Z')   ;" + NL +
 			"DIGIT   : ('0' .. '9')   ;" + NL +
-			"WS   : [ \r\n\t] + -> channel (HIDDEN)   ;";			
+			"WS   : [ \\r\\n\\t] + -> channel (HIDDEN)   ;" + NL;
 }
