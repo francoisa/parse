@@ -1,6 +1,7 @@
 package net.jmf.app;
 
 import java.util.List;
+import java.util.Map;
 
 import org.antlr.v4.Tool;
 import org.antlr.v4.codegen.CodeGenPipeline;
@@ -14,6 +15,11 @@ import org.stringtemplate.v4.ST;
 public class InMemoryCodeGenPipeline extends CodeGenPipeline {
 	private Grammar g;
 	private Tool tool;
+	private Map<String, String> fileMap;
+	
+	public Map<String, String> getFileMap() {
+		return fileMap;
+	}
 	
 	public InMemoryCodeGenPipeline(Tool t, Grammar g) {
 		super(g);
@@ -80,5 +86,6 @@ public class InMemoryCodeGenPipeline extends CodeGenPipeline {
 			gen.writeHeaderFile();
 		}
 		gen.writeVocabFile();
+		fileMap = gen.getFileMap();
 	}	
 }

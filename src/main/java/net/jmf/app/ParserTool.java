@@ -1,5 +1,7 @@
 package net.jmf.app;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -18,6 +20,7 @@ import org.antlr.v4.codegen.CodeGenerator;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.parse.GrammarASTAdaptor;
 import org.antlr.v4.parse.v3TreeGrammarException;
+import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.semantics.SemanticPipeline;
 import org.antlr.v4.tool.ErrorType;
 import org.antlr.v4.tool.Grammar;
@@ -29,7 +32,10 @@ import org.antlr.v4.tool.ast.GrammarRootAST;
 public class ParserTool extends Tool {
 	private static final Logger log = Logger.getLogger(ParserTool.class.toString());
 	private Map<String, String> grammarOptions;
-	GrammarRootAST grammarRootAST;
+	private GrammarRootAST grammarRootAST;
+	private Map<String, String> fileMap;
+	private final Map<String, Grammar> importedGrammars;
+	private final Map<String, String> grammarMap;
 	
 	private GrammarRootAST parse(ANTLRStringStream in) {
 		try {
@@ -77,11 +83,14 @@ public class ParserTool extends Tool {
 		return g;
 	}
 	
-	public ParserTool(String grammar) {
-		ANTLRStringStream stream = new ANTLRStringStream(grammar);
+	public ParserTool(String name, Map<String, String> grammarMap) {
+		this.grammarMap = grammarMap;
+		fileMap = new HashMap<String, String>();
+		importedGrammars = new HashMap<String, Grammar>();
+		ANTLRStringStream stream = new ANTLRStringStream(grammarMap.get(name));
 		grammarOptions = new HashMap<String, String>();
 		grammarRootAST = parse(stream);
-		grammarRootAST.fileName = "arithmetic";
+		grammarRootAST.fileName = name;
 		final Grammar g = createGrammar(grammarRootAST);
 		g.fileName = grammarRootAST.fileName;
 		process(g);
@@ -151,11 +160,35 @@ public class ParserTool extends Tool {
 
 		InMemoryCodeGenPipeline gen = new InMemoryCodeGenPipeline(this, g);
 		gen.process();
+		fileMap.putAll(gen.getFileMap());
 	}
 	
 	public ParseData parse(String toParse) {
-		ParseData pd =  new ParseData();
-		pd.setErrorMessage("not implemented");
+		ANTLRInputStream input = null;
+		ParseData pd =  new ParseData("not implemented");
+		try {
+			input = new ANTLRInputStream(new StringReader(toParse));
+			Map<String, String> values = new HashMap<String, String>();			
+		}
+		catch (IOException ioe) {
+			log.log(Level.SEVERE, "ioe: " + ioe.getMessage(), ioe);
+		}
 		return pd;
+	}
+	
+	@Override
+	public Grammar loadImportedGrammar(Grammar g, GrammarAST nameNode) {
+		String name = nameNode.getText();
+		Grammar imported = importedGrammars.get(name);
+		ANTLRStringStream in = new ANTLRStringStream(grammarMap.get(name));
+		GrammarRootAST root = parse(g.fileName, in);
+		if (root == null) {
+			return null;
+		}
+
+		imported = createGrammar(root);
+		imported.fileName = name;
+		importedGrammars.put(root.getGrammarName(), imported);
+		return imported;
 	}
 }
