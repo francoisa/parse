@@ -6,9 +6,9 @@ console.log = print;
 console.error = print;
 var exports = {};
 
-var antlr4 = require("antlr4/index.js");
-var arithmeticLexer = require("arithmeticLexer.js").arithmeticLexer;
-var arithmeticParser = require("arithmeticParser.js").arithmeticParser;
+var antlr4 = require("antlr4/index");
+var arithmeticLexer = require("arithmeticLexer").arithmeticLexer;
+var arithmeticParser = require("arithmeticParser").arithmeticParser;
 
 function parse(toParse) {
     var input = new antlr4.InputStream(toParse);

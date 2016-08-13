@@ -2,22 +2,26 @@ package net.jmf.app;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ParserToolTest {
+	private static final String FS = System.getProperty("file.separator");
 	@BeforeClass
 	public static void loggerFormat() {
 		System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tc %4$s - %2$s %5$s%6$s%n");		
 	}
 	
 	@Test
-	public void testParsingGrammarWithoutImport() {
+	@Ignore
+	public void parseShouldReturnMapOfRules() {
 		String expression = "a = 8 + 9;";
 		Map<String, String> values = new HashMap<String, String>();
 		ParseData expected = new ParseData(values);
@@ -27,5 +31,30 @@ public class ParserToolTest {
 		ParserTool parser = new ParserTool(grammarName, grammarMap);
 		ParseData actual = parser.parse(expression);
 		assertThat(actual.getErrorMessage(), is(equalTo(expected.getErrorMessage())));
+	}
+	
+	@Test
+	public void fileFromPathReturnsFileForIndex() {
+		String path = "antlr4/index.js";
+		String expectedFile = "antlr4/index";
+		String  actualFile = RequireHelper.fileFromPath(path);
+		assertThat(actualFile, is(equalTo(expectedFile)));
+	}
+	
+	@Test
+	public void fileFromPathReturnsFileWithRelativePath() {
+		String path = "../Utils.js";
+		String expectedFile = "Utils";
+		String  actualFile = RequireHelper.fileFromPath(path);
+		assertThat(actualFile, is(equalTo(expectedFile)));
+	}
+	
+	@Test
+	public void loadFilesIntoCacheReturnsMapOfUniquePaths() {
+		String baseDirectory = System.getProperty("user.dir") + FS + "js";
+		String[] expectedKeys  = {"fs/fs", "antlr4/atn/ATN"};
+		Map<String, String> fileMap = RequireHelper.loadFilesIntoCache(baseDirectory);
+		for (String expectedKey : expectedKeys)
+			assertThat(fileMap, hasKey(expectedKey));
 	}
 }
