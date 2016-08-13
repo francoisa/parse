@@ -5,9 +5,14 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -53,8 +58,42 @@ public class ParserToolTest {
 	public void loadFilesIntoCacheReturnsMapOfUniquePaths() {
 		String baseDirectory = System.getProperty("user.dir") + FS + "js";
 		String[] expectedKeys  = {"fs/fs", "antlr4/atn/ATN"};
-		Map<String, String> fileMap = RequireHelper.loadFilesIntoCache(baseDirectory);
+		Map<String, String> fileMap = new HashMap<String, String>();
+		TestableRequireHelper.loadFilesIntoCache(baseDirectory, fileMap);
 		for (String expectedKey : expectedKeys)
 			assertThat(fileMap, hasKey(expectedKey));
+	}
+	
+	@Test
+	public void lookupPathForFileReturnsPath() {
+		String baseDirectory = System.getProperty("user.dir") + FS + "js";
+		TestableRequireHelper.loadFilesIntoCache(baseDirectory);
+		assertThat(TestableRequireHelper.lookupPath("fs", true), is(equalTo("fs/fs")));
+		assertThat(TestableRequireHelper.lookupPath("./../error/Errors", true), is(equalTo("antlr4/error/Errors")));
+		assertThat(TestableRequireHelper.lookupPath("antlr4/index", true), is(equalTo("antlr4/index")));
+	}
+	
+	@Test
+	public void resolveReturnsFileContents() {
+		String baseDirectory = System.getProperty("user.dir") + FS + "js";
+		Path actualPath = Paths.get(baseDirectory + FS + "fs" + FS + "fs.js");
+		try {
+			String actualContents = new String(Files.readAllBytes(actualPath));
+			assertThat(RequireHelper.getContents("fs"), is(equalTo(actualContents)));
+		} 
+		catch (IOException e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	static class TestableRequireHelper extends RequireHelper {
+		public static void loadFilesIntoCache(String path, Map<String, String> fileMap) {
+			RequireHelper.loadFilesIntoCache(path);
+			fileMap.putAll(FILEMAP);
+		}
+		
+		public static String lookupPath(String path, boolean value) {
+			return lookupPath(path);
+		}
 	}
 }
