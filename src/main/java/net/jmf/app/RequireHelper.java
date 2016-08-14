@@ -85,11 +85,12 @@ public class RequireHelper {
 							.findFirst();
 				if (actualPath.isPresent()) {
 					REQUIREMAP.put(requirePath, actualPath.get());
+					return actualPath.get();
 				}
 				else {
 					log.severe("lookupPath(" + requirePath + ") not found");
+					return null;
 				}
-				return actualPath.get();
 			}
 		}
 	}
@@ -103,4 +104,8 @@ public class RequireHelper {
 			return "";
 		}
 	}
+	
+	public static void addContents(String name, String contents) {
+		FILEMAP.put(fileFromPath(name), contents);
+	}	
 }
