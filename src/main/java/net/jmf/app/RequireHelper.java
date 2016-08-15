@@ -95,6 +95,16 @@ public class RequireHelper {
 		}
 	}
 	
+	public static boolean containsContent(String path) {
+		String actualPath = lookupPath(path);
+		if (actualPath != null) {
+			return true;
+		}
+		else {
+			return false;
+		}		
+	}
+	
 	public static String getContents(String path) {
 		String actualPath = lookupPath(path);
 		if (actualPath != null) {

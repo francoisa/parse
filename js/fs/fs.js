@@ -43,3 +43,5 @@ var fs = {
 	return data;
   }
 };
+
+exports.fs = fs;

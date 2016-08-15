@@ -102,9 +102,9 @@ module = (typeof module == 'undefined') ? {} :  module;
       }
     } catch(ex) {
       if (ex instanceof java.lang.Exception) {
-        throw new ModuleError("Cannot load module " + id, "LOAD_ERROR", ex);
+        throw new ModuleError("Cannot load module " + id, "LOAD_ERROR(1)", ex);
       } else {
-        System.out.println("Cannot load module " + id + " LOAD_ERROR");
+        System.out.println("Cannot load module " + id + " LOAD_ERROR(2)");
         throw ex;
       }
     }
@@ -114,6 +114,16 @@ module = (typeof module == 'undefined') ? {} :  module;
     var roots = findRoots(parent);
     for ( var i = 0 ; i < roots.length ; ++i ) {
       var root = roots[i];
+      var RequireHelper = Java.type("net.jmf.app.RequireHelper");
+      var containsContent = RequireHelper.containsContent(id);
+      if (containsContent) {
+    	  if (id.endsWith(".js")) {
+    		  return id;
+    	  }
+    	  else {
+    		  return id + ".js";
+    	  }
+      }
       var result = resolveCoreModule(id, root) ||
         resolveAsFile(id, root, '.js')   ||
         resolveAsFile(id, root, '.json') ||
@@ -259,7 +269,9 @@ module = (typeof module == 'undefined') ? {} :  module;
         input = new File(filename);
       }
       // TODO: I think this is not very efficient
-      return new Scanner(input).useDelimiter("\\A").next();
+      var RequireHelper = Java.type("net.jmf.app.RequireHelper");
+      return RequireHelper.getContents(filename);
+      // return new Scanner(input).useDelimiter("\\A").next();
     } catch(e) {
       throw new ModuleError("Cannot read file ["+input+"]: ", "IO_ERROR", e);
     }
