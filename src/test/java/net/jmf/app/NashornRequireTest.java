@@ -45,10 +45,31 @@ public class NashornRequireTest {
 			Assert.fail("Could not evaluate '" + script + "': " + e.getMessage());
 		}
 		Invocable invocable = (Invocable) engine;
-
 		try {
 			Object result =  invocable.invokeFunction("hello");
 			assertThat(result.toString(), is(equalTo("Hello World.")));
+		}
+		catch (NoSuchMethodException | ScriptException e) {
+			Assert.fail("Could not invoke function 'hello': " + e.getMessage());
+		}
+	}
+	
+	@Test
+	public void aJavascriptFunctionCallsAJavaFunction() {
+		String testFile = "testFile.js";
+		String testContents = "Ipsum Lorem";
+		RequireHelper.addContents(testFile, testContents);
+		String script = baseDirectory + FS + "callAJavaStaticMethod.js";
+		try {
+			engine.eval(new FileReader(script));
+		}
+		catch (FileNotFoundException | ScriptException e) {
+			Assert.fail("Could not evaluate '" + script + "': " + e.getMessage());
+		}
+		Invocable invocable = (Invocable) engine;
+		try {
+			Object result =  invocable.invokeFunction("hello", testFile);
+			assertThat(result.toString(), is(equalTo(testContents)));
 		}
 		catch (NoSuchMethodException | ScriptException e) {
 			Assert.fail("Could not invoke function 'hello': " + e.getMessage());
