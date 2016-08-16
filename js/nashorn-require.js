@@ -117,12 +117,8 @@ module = (typeof module == 'undefined') ? {} :  module;
       var RequireHelper = Java.type("net.jmf.app.RequireHelper");
       var containsContent = RequireHelper.containsContent(id);
       if (containsContent) {
-    	  if (id.endsWith(".js")) {
-    		  return id;
-    	  }
-    	  else {
-    		  return id + ".js";
-    	  }
+		  var id = RequireHelper.lookupPath(id);
+		  return id + ".js";
       }
       var result = resolveCoreModule(id, root) ||
         resolveAsFile(id, root, '.js')   ||

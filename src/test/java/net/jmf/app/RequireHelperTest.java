@@ -58,6 +58,16 @@ public class RequireHelperTest {
 		assertThat(TestableRequireHelper.lookupPath("fs", true), is(equalTo("fs/fs")));
 		assertThat(TestableRequireHelper.lookupPath("./../error/Errors", true), is(equalTo("antlr4/error/Errors")));
 		assertThat(TestableRequireHelper.lookupPath("antlr4/index", true), is(equalTo("antlr4/index")));
+		assertThat(TestableRequireHelper.lookupPath("antlr4/index.js", true), is(equalTo("antlr4/index")));
+		assertThat(TestableRequireHelper.lookupPath("./atn/index", true), is(equalTo("antlr4/atn/index")));
+	}
+	
+	@Test
+	public void hasContentsReturnsCorrectValue() {
+		assertThat(RequireHelper.containsContent("fs"), is(true));
+		assertThat(RequireHelper.containsContent("./../error/Errors"), is(true));
+		assertThat(RequireHelper.containsContent("antlr4/index"), is(true));
+		assertThat(RequireHelper.containsContent("antlr4/index.js"), is(true));
 	}
 	
 	@Test

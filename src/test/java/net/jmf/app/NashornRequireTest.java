@@ -115,7 +115,7 @@ public class NashornRequireTest {
 		}
 		catch (FileNotFoundException | ScriptException e) {
 			Assert.fail("Could not evaluate '" + script + "': " + e.getMessage());
-		}		
+		}
 		try {
 			Object result =  invocable.invokeFunction("contents", script);
 			assertThat(result.toString(), is(equalTo(scriptContents)));

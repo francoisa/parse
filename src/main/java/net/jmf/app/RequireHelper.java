@@ -24,7 +24,7 @@ public class RequireHelper {
 			file.delete(length - 3, length);
 		}
 		int lastRelativePath = file.lastIndexOf("./");
-		if (lastRelativePath > 0) {
+		if (lastRelativePath >= 0) {
 			file.delete(0, lastRelativePath + 2);
 		}
 		return file.toString();
@@ -68,7 +68,7 @@ public class RequireHelper {
 		return false;
 	}
 	
-	protected static String lookupPath(String requirePath) {
+	public static String lookupPath(String requirePath) {
 		if (FILEMAP.containsKey(requirePath)) {
 			return requirePath;
 		}
@@ -88,7 +88,7 @@ public class RequireHelper {
 					return actualPath.get();
 				}
 				else {
-					log.severe("lookupPath(" + requirePath + ") not found");
+					log.severe("lookupPath(" + requirePath + ") not found. cookedPath: " + cookedPath);
 					return null;
 				}
 			}
