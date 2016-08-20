@@ -33,7 +33,7 @@ public class ParserTool extends Tool {
 	private static final Logger log = Logger.getLogger(ParserTool.class.toString());
 	private Map<String, String> grammarOptions;
 	private GrammarRootAST grammarRootAST;
-	private Map<String, String> fileMap;
+	protected Map<String, String> fileMap;
 	private final Map<String, Grammar> importedGrammars;
 	private final Map<String, String> grammarMap;
 	

@@ -2,6 +2,8 @@ package net.jmf.app;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 
 import java.io.FileNotFoundException;
@@ -10,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -98,9 +102,38 @@ public class ParserToolTest {
 	}
 	
 	@Test
+	public void grammarShouldReturnJavascript() {
+		final String name = "arithmetic";
+		Map<String, String> grammarMap = new HashMap<>();
+		grammarMap.put(name, Grammar.ARITHMETIC);
+		TestableParserTool pt = new TestableParserTool(name, grammarMap);
+		Map<String, String> fileMap = pt.getFileMap();
+		assertThat(fileMap.size(), is(greaterThan(0)));
+		assertThat(fileMap, hasKey(name + "Lexer.js"));
+		assertThat(fileMap, hasKey(name + "Parser.js"));
+		assertThat(fileMap, hasKey(name + "Listener.js"));
+	}
+
+	@Test
 	@Ignore
-	public void passInGrammarShouldReturnAParseArray() {
-		
+	public void expressionAndreGrammarShouldReturnAParseArray() {
+		final String name = "arithmetic";
+		Map<String, String> grammarMap = new HashMap<>();
+		grammarMap.put(name, Grammar.ARITHMETIC);
+		ParserTool pt = new ParserTool(name, grammarMap);
+		ParseData pd = pt.parse("a = 4 + 5");
+		assertThat(pd.getTokens(), hasKey("expression"));
+		assertThat(pd.getTokens(), hasKey("relop"));
 	}
 	
+	class TestableParserTool extends ParserTool {
+
+		public TestableParserTool(String name, Map<String, String> grammarMap) {
+			super(name, grammarMap);
+		}
+		
+		public Map<String, String> getFileMap() {
+			return fileMap;
+		}
+	}
 }
