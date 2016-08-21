@@ -1,11 +1,16 @@
 package net.jmf.app;
 
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -20,7 +25,6 @@ import org.antlr.v4.codegen.CodeGenerator;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.parse.GrammarASTAdaptor;
 import org.antlr.v4.parse.v3TreeGrammarException;
-import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.semantics.SemanticPipeline;
 import org.antlr.v4.tool.ErrorType;
 import org.antlr.v4.tool.Grammar;
@@ -28,6 +32,8 @@ import org.antlr.v4.tool.GrammarTransformPipeline;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.antlr.v4.tool.ast.GrammarRootAST;
+
+import com.google.gson.Gson;
 
 public class ParserTool extends Tool {
 	private static final Logger log = Logger.getLogger(ParserTool.class.toString());
@@ -163,15 +169,49 @@ public class ParserTool extends Tool {
 		fileMap.putAll(gen.getFileMap());
 	}
 	
-	public ParseData parse(String toParse) {
-		ANTLRInputStream input = null;
-		ParseData pd =  new ParseData("not implemented");
-		try {
-			input = new ANTLRInputStream(new StringReader(toParse));
-			Map<String, String> values = new HashMap<String, String>();			
+	private static final String FS = System.getProperty("file.separator");
+	
+	private void loadScripts(String baseDir, ScriptEngine engine, String... scripts) {
+		for (String script : scripts) {
+			try {
+				engine.eval(new FileReader(baseDir  + FS + script));
+			}
+			catch (FileNotFoundException | ScriptException e) {
+				log.log(Level.SEVERE, "Exception loading " + script + ": '" + e.getMessage() + "'", e);
+			}
 		}
-		catch (IOException ioe) {
-			log.log(Level.SEVERE, "ioe: " + ioe.getMessage(), ioe);
+	}
+	
+	class RuleValue {
+		String rule;
+		String value;
+	}
+	
+	protected Map<String, String> toRuleMap(String json) {
+		Map<String, String> ruleMap = new HashMap<>();
+		Gson gson = new Gson();
+		RuleValue[] ruleValues = gson.fromJson(json, RuleValue[].class);
+		for (RuleValue rv : ruleValues) {
+			ruleMap.put(rv.rule, rv.value);
+		}
+		return ruleMap;
+	}
+	
+	public ParseData parse(String toParse) {
+		ParseData pd =  new ParseData("not implemented");
+		final String baseDir = System.getProperty("user.dir") + FS + "js";
+		RequireHelper.loadFilesIntoCache(baseDir);
+		ScriptEngineManager engineManager = new ScriptEngineManager();
+		ScriptEngine engine = engineManager.getEngineByName("nashorn");
+		Invocable invocable = (Invocable) engine;
+		loadScripts(baseDir, engine, "nashorn-require.js", "arithmetic.js");
+		try {
+			Object result =  invocable.invokeFunction("parse", toParse);
+			pd = new ParseData(toRuleMap(result.toString()));
+		}
+		catch (NoSuchMethodException | ScriptException e) {
+			log.log(Level.SEVERE, "Exception calling javascript parse('" + 
+					toParse + "'): '" + e.getMessage() + "'", e);
 		}
 		return pd;
 	}

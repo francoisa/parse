@@ -4,9 +4,7 @@ var console = {};
 console.log = print;
 console.error = print;
 var exports = {};
-var RequireHelper = Java.type("net.jmf.app.RequireHelper");
-RequireHelper.loadFilesIntoCache("D:\\github\\francoisa\\parse\\js");
-load("nashorn-require.js");
+
 var antlr4 = require("antlr4/index.js");
 var arithmeticLexer = require("arithmeticLexer.js").arithmeticLexer;
 var arithmeticParser = require("arithmeticParser.js").arithmeticParser;
@@ -27,5 +25,3 @@ function parse(toParse) {
 	}
     return JSON.stringify(result);
 }
-
-print(parse("a = 4 + 5"));

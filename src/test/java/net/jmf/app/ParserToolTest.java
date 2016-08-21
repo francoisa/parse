@@ -23,7 +23,6 @@ import javax.script.ScriptException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ParserToolTest {
@@ -115,7 +114,19 @@ public class ParserToolTest {
 	}
 
 	@Test
-	@Ignore
+	public void shouldConvertJsonToMap() {
+		final String json = "[{\"rule\":\"expression\",\"value\":\"a\"}," + 
+				"{\"rule\":\"relop\",\"value\":\"=\"},{\"rule\":\"expression\",\"value\":\"4+5\"}]";
+		final String name = "arithmetic";
+		Map<String, String> grammarMap = new HashMap<>();
+		grammarMap.put(name, Grammar.ARITHMETIC);
+		TestableParserTool pt = new TestableParserTool(name, grammarMap);
+		Map<String, String>  ruleMap = pt.convert(json);
+		assertThat(ruleMap, hasKey("expression"));
+		assertThat(ruleMap, hasKey("relop"));
+	}
+	
+	@Test
 	public void expressionAndreGrammarShouldReturnAParseArray() {
 		final String name = "arithmetic";
 		Map<String, String> grammarMap = new HashMap<>();
@@ -127,13 +138,16 @@ public class ParserToolTest {
 	}
 	
 	class TestableParserTool extends ParserTool {
-
 		public TestableParserTool(String name, Map<String, String> grammarMap) {
 			super(name, grammarMap);
 		}
 		
 		public Map<String, String> getFileMap() {
 			return fileMap;
+		}
+		
+		public Map<String, String> convert(String json) {
+			return toRuleMap(json);
 		}
 	}
 }
