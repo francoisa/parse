@@ -114,6 +114,20 @@ public class ParserToolTest {
 	}
 
 	@Test
+	public void grammarWithImportsShouldReturnJavascript() {
+		final String name = "arithmetic";
+		Map<String, String> grammarMap = new HashMap<>();
+		grammarMap.put(name, Grammar.ARITHMETICRULES);
+		grammarMap.put("aLexer", Grammar.ARITHMETICLEXER);
+		TestableParserTool pt = new TestableParserTool(name, grammarMap);
+		Map<String, String> fileMap = pt.getFileMap();
+		assertThat(fileMap.size(), is(greaterThan(0)));
+		assertThat(fileMap, hasKey(name + "Lexer.js"));
+		assertThat(fileMap, hasKey(name + "Parser.js"));
+		assertThat(fileMap, hasKey(name + "Listener.js"));
+	}
+
+	@Test
 	public void shouldConvertJsonToMap() {
 		final String json = "[{\"rule\":\"expression\",\"value\":\"a\"}," + 
 				"{\"rule\":\"relop\",\"value\":\"=\"},{\"rule\":\"expression\",\"value\":\"4+5\"}]";
@@ -138,16 +152,10 @@ public class ParserToolTest {
 	}
 	
 	class TestableParserTool extends ParserTool {
-		public TestableParserTool(String name, Map<String, String> grammarMap) {
-			super(name, grammarMap);
-		}
+		public TestableParserTool(String name, Map<String, String> grammarMap) { super(name, grammarMap); }
 		
-		public Map<String, String> getFileMap() {
-			return fileMap;
-		}
+		public Map<String, String> getFileMap() { return fileMap; }
 		
-		public Map<String, String> convert(String json) {
-			return toRuleMap(json);
-		}
+		public Map<String, String> convert(String json) { return toRuleMap(json); }
 	}
 }
