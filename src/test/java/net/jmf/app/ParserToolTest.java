@@ -151,6 +151,17 @@ public class ParserToolTest {
 		assertThat(pd.getTokens(), hasKey("relop"));
 	}
 	
+	@Test
+	public void inputAndreGrammarShouldReturnAParseTree() {
+		final String name = "arithmetic";
+		Map<String, String> grammarMap = new HashMap<>();
+		grammarMap.put(name, Grammar.ARITHMETIC);
+		ParserTool pt = new ParserTool(name, grammarMap);
+		ParseData pd = pt.parseTree("expression", "a = 4 + 5");
+		assertThat(pd.getTokens(), hasKey("expression"));
+		assertThat(pd.getTokens(), hasKey("relop"));
+	}
+	
 	class TestableParserTool extends ParserTool {
 		public TestableParserTool(String name, Map<String, String> grammarMap) { super(name, grammarMap); }
 		

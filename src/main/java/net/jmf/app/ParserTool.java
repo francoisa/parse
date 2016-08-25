@@ -25,6 +25,15 @@ import org.antlr.v4.codegen.CodeGenerator;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.parse.GrammarASTAdaptor;
 import org.antlr.v4.parse.v3TreeGrammarException;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.LexerInterpreter;
+import org.antlr.v4.runtime.ParserInterpreter;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeListener;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.semantics.SemanticPipeline;
 import org.antlr.v4.tool.ErrorType;
 import org.antlr.v4.tool.Grammar;
@@ -42,6 +51,7 @@ public class ParserTool extends Tool {
 	protected Map<String, String> fileMap;
 	private final Map<String, Grammar> importedGrammars;
 	private final Map<String, String> grammarMap;
+	private final Grammar grammar;
 	
 	private GrammarRootAST parse(ANTLRStringStream in) {
 		try {
@@ -77,7 +87,7 @@ public class ParserTool extends Tool {
 	@Override
 	public Grammar createGrammar(GrammarRootAST ast) {
 		final Grammar g;
-		if ( ast.grammarType==ANTLRParser.LEXER ) {
+		if (ast.grammarType == ANTLRParser.LEXER) {
 			g = new LexerGrammar(this, ast);
 		}
 		else {
@@ -97,9 +107,9 @@ public class ParserTool extends Tool {
 		grammarOptions = new HashMap<String, String>();
 		grammarRootAST = parse(stream);
 		grammarRootAST.fileName = name;
-		final Grammar g = createGrammar(grammarRootAST);
-		g.fileName = grammarRootAST.fileName;
-		process(g);
+		grammar = createGrammar(grammarRootAST);
+		grammar.fileName = grammarRootAST.fileName;
+		process(grammar);
 	}
 	
 	private void process(Grammar g) {
@@ -152,8 +162,12 @@ public class ParserTool extends Tool {
 
 		// BUILD ATN FROM AST
 		ATNFactory factory;
-		if ( g.isLexer() ) factory = new LexerATNFactory((LexerGrammar)g);
-		else factory = new ParserATNFactory(g);
+		if (g.isLexer()) {
+			factory = new LexerATNFactory((LexerGrammar)g);
+		}
+		else {
+			factory = new ParserATNFactory(g);
+		}
 		g.atn = factory.createATN();
 
 		if (generate_ATN_dot) generateATNs(g);
@@ -230,5 +244,49 @@ public class ParserTool extends Tool {
 		imported.fileName = name;
 		importedGrammars.put(root.getGrammarName(), imported);
 		return imported;
+	}
+	
+	public ParseData parseTree(String startRule, String input) {
+		ParseData pd =  new ParseData("not implemented");
+
+		LexerInterpreter lexEngine = grammar.createLexerInterpreter(new ANTLRInputStream(input));
+		org.antlr.v4.runtime.CommonTokenStream tokens = new org.antlr.v4.runtime.CommonTokenStream(lexEngine);
+	    ParserInterpreter parser = grammar.createParserInterpreter(tokens);
+	    ParseTree parseTree = parser.parse(grammar.getRule(startRule).index);
+		RuleMapListener rml = new RuleMapListener(parser.getRuleNames());
+		ParseTreeWalker walker = new ParseTreeWalker();
+	    walker.walk(rml, parseTree);
+		pd = new ParseData(rml.getRuleMap());
+		return pd;
+	}
+	
+	public class RuleMapListener implements ParseTreeListener {
+		private String[] ruleArray;
+		Map<String, String> ruleMap;
+		
+		public RuleMapListener(String[] ruleArray) {
+			this.ruleArray = ruleArray;
+			this.ruleMap = new HashMap<>();
+		}
+		
+		public Map<String, String> getRuleMap() {
+			return ruleMap;
+		}
+		
+		@Override
+		public void enterEveryRule(ParserRuleContext ctx) {
+			String key = ruleArray[ctx.getRuleIndex()];
+			String value = ctx.getStart().getText();
+			ruleMap.put(key, value);
+		}
+
+		@Override
+		public void visitTerminal(TerminalNode node) { }
+
+		@Override
+		public void visitErrorNode(ErrorNode node) { }
+
+		@Override
+		public void exitEveryRule(ParserRuleContext ctx) { }
 	}
 }
