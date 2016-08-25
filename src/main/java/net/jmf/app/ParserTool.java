@@ -246,7 +246,7 @@ public class ParserTool extends Tool {
 		return imported;
 	}
 	
-	public ParseData parseTree(String startRule, String input) {
+	public ParseData parse(String startRule, String input) {
 		ParseData pd =  new ParseData("not implemented");
 
 		LexerInterpreter lexEngine = grammar.createLexerInterpreter(new ANTLRInputStream(input));
@@ -276,7 +276,7 @@ public class ParserTool extends Tool {
 		@Override
 		public void enterEveryRule(ParserRuleContext ctx) {
 			String key = ruleArray[ctx.getRuleIndex()];
-			String value = ctx.getStart().getText();
+			String value = ctx.getText();
 			ruleMap.put(key, value);
 		}
 

@@ -157,7 +157,7 @@ public class ParserToolTest {
 		Map<String, String> grammarMap = new HashMap<>();
 		grammarMap.put(name, Grammar.ARITHMETIC);
 		ParserTool pt = new ParserTool(name, grammarMap);
-		ParseData pd = pt.parseTree("expression", "a = 4 + 5");
+		ParseData pd = pt.parse("equation", "a = 4 + 5");
 		assertThat(pd.getTokens(), hasKey("expression"));
 		assertThat(pd.getTokens(), hasKey("relop"));
 	}
